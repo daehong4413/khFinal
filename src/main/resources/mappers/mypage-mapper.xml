@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="mypageMapper">
+	<resultMap type="WriteBoard" id="writeBoardResultSet">
+		<!-- <id property="bId" column="BID" /> -->
+		<result property="memberId" column="MEMBER_ID" />
+		<result property="boardNum" column="BOARD_NUM" />
+		<result property="grpNum" column="GRP_NUM" />
+		<result property="categoryNum" column="CATEGORY_NUM" />
+		<result property="categoryName" column="CATEGORY_NAME" />
+		<result property="title" column="TITLE" />
+		<result property="content" column="CONTENT" />
+		<result property="thumbNailFile" column="THUMBNAIL_FILE" />
+		<result property="cdt" column="CDT" />
+		<result property="mdt" column="MDT" />
+	</resultMap>
+	<resultMap type="Order" id="orderResultSet">
+		<id property="orderNum" column="ORDER_NUM"></id>
+		<result property="memberId" column="MEMBER_ID"></result>
+		<result property="orderName" column="ORDER_NAME"></result>
+		<result property="orderPhone" column="ORDER_PHONE"></result>
+		<result property="orderPost" column="ORDER_POST"></result>
+		<result property="orderAddress" column="ORDER_ADDRESS"></result>
+		<result property="orderAddressDetail" column="ORDER_ADDRESS_DETAIL"></result>
+		<result property="statusNum" column="STATUS_NUM"></result>
+		<result property="purchaseType" column="PURCHASE_TYPE"></result>
+		<result property="purchaseNum" column="PURCHASE_NUM"></result>
+		<result property="cdt" column="CDT"></result>
+		<result property="dcRate" column="DC_RATE"></result>
+	</resultMap>
+	
+	<resultMap type="OrderInfo" id="orderInfoResultSet">
+		<result property="orderNum" column="ORDER_NUM"/>
+		<result property="statusNum" column="STATUS_NUM"/>
+		<result property="statusName" column="STATUS_NAME"/>
+		<result property="productName" column="PRODUCT_NAME"/>
+		<result property="totalPrice" column="TOTAL_PRICE"/>
+		<result property="thumbNailFile" column="THUMBNAIL_FILE"/>
+		<result property="cdt" column="CDT"/>
+	</resultMap>
+	<resultMap type="Product" id="productResultMap">
+		<id property="productNum" column="PRODUCT_NUM"></id>
+		<result property="categoryNum" column="CATEGORY_NUM"></result>
+		<result property="productMainName" column="PRODUCT_MAIN_NAME"></result>
+		<result property="productMainPath" column="PRODUCT_MAIN_PATH"></result>
+		<result property="productName" column="PRODUCT_NAME"></result>
+		<result property="productStock" column="PRODUCT_STOCK"></result>
+		<result property="productPrice" column="PRODUCT_PRICE"></result>
+		<result property="productInfo" column="PRODUCT_INFO"></result>
+		<result property="productSize" column="PRODUCT_SIZE"></result>
+		<result property="productColor" column="PRODUCT_COLOR"></result>
+		<result property="productShowCnt" column="PRODUCT_SHOW_CNT"></result>
+		<result property="productStatus" column="PRODUCT_STATUS"></result>
+		<result property="cdt" column="CDT"></result>	
+		<result property="mdt" column="MDT"></result>
+		<result property="fCnt" column="F_CNT"></result>
+		<result property="fStat" column="F_STAT"></result>	
+	</resultMap>
+	<resultMap type="ProductInCart" id="ProductInCartMap">
+		<id property="productNum" column="PRODUCT_NUM"></id>
+		<result property="categoryNum" column="CATEGORY_NUM"></result>
+		<result property="productMainName" column="PRODUCT_MAIN_NAME"></result>
+		<result property="productName" column="PRODUCT_NAME"></result>
+		<result property="productStock" column="PRODUCT_STOCK"></result>
+		<result property="productPrice" column="PRODUCT_PRICE"></result>
+		<result property="productSize" column="PRODUCT_SIZE"></result>
+		<result property="productColor" column="PRODUCT_COLOR"></result>
+	</resultMap>
+	
+	<resultMap type="Status" id="StatusMap">
+		<id property="statusNum" column="STATUS_NUM"/>
+		<result property="statusName" column="STATUS_NAME"/>
+	</resultMap>
+	<resultMap type="OrderProduct" id="ProductInfoMap">
+		<result property="productMainName" column="PRODUCT_MAIN_NAME"/>
+		<result property="productName" column="PRODUCT_NAME"/>
+		<result property="orderQty" column="PRODUCT_QTY"/>
+		<result property="productPrice" column="PRODUCT_PRICE"/>
+	</resultMap>
+	
+	<select id="selectWriteList" parameterType="String" resultMap="writeBoardResultSet">
+		SELECT  *
+		FROM    TABLE(FN_GET_MY_WRITE_BOARD(#{memberId}))
+	</select>
+	<select id="writeCount" parameterType="String" resultType="_int">
+		SELECT  COUNT(0) AS CNT
+		FROM    TABLE(FN_GET_MY_WRITE_BOARD(#{memberId}))
+	</select>
+	<select id="selectOrderList" parameterType="String" resultMap="orderInfoResultSet">
+		SELECT  A.ORDER_NUM, A.STATUS_NUM, D.STATUS_NAME,
+		        MAX(C.PRODUCT_NAME) KEEP(DENSE_RANK FIRST ORDER BY (CASE WHEN C.PRODUCT_MAIN_PATH IS NOT NULL AND C.PRODUCT_MAIN_NAME IS NOT NULL THEN 0 ELSE 1 END)) || (CASE WHEN COUNT(0) > 1 THEN ' 외 ' ||(COUNT(0)-1) || '건' END) AS PRODUCT_NAME,
+		        SUM(NVL(B.PRODUCT_QTY,0) * NVL(B.PRODUCT_PRICE, 0)) AS TOTAL_PRICE,
+                MAX(C.PRODUCT_MAIN_NAME) KEEP(DENSE_RANK FIRST ORDER BY (CASE WHEN C.PRODUCT_MAIN_NAME IS NOT NULL THEN 0 ELSE 1 END)) AS THUMBNAIL_FILE,
+                MAX(A.CDT) KEEP(DENSE_RANK FIRST ORDER BY (CASE WHEN C.PRODUCT_MAIN_NAME IS NOT NULL THEN 0 ELSE 1 END)) AS CDT
+		FROM    ORDER_TB   A
+		JOIN    ORDER_DETAIL B ON A.ORDER_NUM = B.ORDER_NUM
+		LEFT JOIN PRODUCT C ON B.PRODUCT_NUM = C.PRODUCT_NUM
+		LEFT JOIN STATUS_TB D ON A.STATUS_NUM = D.STATUS_NUM
+		WHERE   A.MEMBER_ID = #{memberId}
+		GROUP BY A.ORDER_NUM, A.STATUS_NUM, D.STATUS_NAME
+		ORDER BY A.ORDER_NUM DESC
+	</select>
+	<select id="orderCount" parameterType="String" resultType="_int">
+		SELECT	COUNT(0) AS CNT
+		FROM    ORDER_TB   A
+		WHERE   A.MEMBER_ID = #{memberId}
+	</select>
+	<select id="selectFavoriteList" parameterType="String" resultMap="productResultMap">
+		SELECT 	A.PRODUCT_NUM, A.CATEGORY_NUM, A.PRODUCT_MAIN_NAME, A.PRODUCT_MAIN_PATH, A.PRODUCT_NAME, A.PRODUCT_STOCK, A.PRODUCT_PRICE, A.PRODUCT_INFO, A.PRODUCT_SIZE, A.PRODUCT_COLOR, A.PRODUCT_SHOW_CNT, A.PRODUCT_STATUS,
+		        SUM(CASE WHEN T1.MEMBER_ID IS NOT NULL THEN 1 ELSE 0 END) AS F_CNT, (CASE WHEN T2.MEMBER_ID IS NULL THEN 'F' ELSE 'T' END) AS F_STAT, A.CDT, A.MDT
+		FROM 	PRODUCT A
+		JOIN FAVORITE T2 ON A.PRODUCT_NUM = T2.PRODUCT_NUM AND T2.MEMBER_ID = #{memberId}
+		LEFT JOIN FAVORITE T1 ON A.PRODUCT_NUM = T1.PRODUCT_NUM
+		WHERE	A.PRODUCT_STATUS = 'Y'
+		GROUP BY A.PRODUCT_NUM, A.CATEGORY_NUM, A.PRODUCT_MAIN_NAME, A.PRODUCT_MAIN_PATH, A.PRODUCT_NAME, A.PRODUCT_STOCK, A.PRODUCT_PRICE, A.PRODUCT_INFO, 
+		         A.PRODUCT_SIZE, A.PRODUCT_COLOR, A.PRODUCT_SHOW_CNT, A.PRODUCT_STATUS, (CASE WHEN T2.MEMBER_ID IS NULL THEN 'F' ELSE 'T' END), A.CDT, A.MDT
+		ORDER BY A.CDT DESC
+	</select>
+	<select	id="favoriteCount" parameterType="String" resultType="_int">
+		SELECT	COUNT(0) AS CNT
+		FROM	FAVORITE
+		WHERE	MEMBER_ID = #{memberId}
+	</select>
+	<insert id="insertFavorite" parameterType="Favorite">
+		INSERT INTO FAVORITE
+		VALUES(#{memberId}, #{productNum})
+	</insert>
+	<delete id="deleteFavorite" parameterType="Favorite">
+		DELETE
+		FROM	FAVORITE
+		WHERE	PRODUCT_NUM = #{productNum}
+		AND		MEMBER_ID = #{memberId}  
+	</delete>
+	<select id="getFavoriteCnt" resultType="_int" parameterType="Favorite">
+		SELECT	SUM(CASE WHEN B.MEMBER_ID IS NOT NULL THEN 1 ELSE 0 END) AS CNT
+		FROM	PRODUCT A
+		LEFT JOIN FAVORITE B ON A.PRODUCT_NUM = B.PRODUCT_NUM
+		WHERE	A.PRODUCT_NUM = #{productNum}
+	</select>
+	<select id="selectProduct" parameterType="_int" resultMap="ProductInCartMap">
+		SELECT	PRODUCT_NUM, CATEGORY_NUM, PRODUCT_MAIN_NAME, PRODUCT_NAME, PRODUCT_STOCK, 
+				PRODUCT_PRICE, PRODUCT_SIZE, PRODUCT_COLOR
+		FROM	PRODUCT
+		WHERE	PRODUCT_NUM = #{productNum}
+		AND		PRODUCT_STATUS = 'Y'
+	</select>
+	<select id="getdcRate" parameterType="String" resultType="_int">
+		SELECT	NVL(B.GRADE_DC_RATE, 0) AS DC_RATE
+		FROM    MEMBER A
+		LEFT JOIN   GRADE B ON A.GRADE_NUM = B.GRADE_NUM
+		WHERE   MEMBER_ID = #{memberId}
+	</select>
+	<select id="selectOrderOne" resultMap="orderResultSet" parameterType="String">
+		SELECT	*
+		FROM	ORDER_TB
+		WHERE	ORDER_NUM = #{orderNum}
+	</select>
+	<select id="selectStatus" resultMap="StatusMap">
+		SELECT  *
+		FROM    STATUS_TB
+	</select>
+	<select id="selectProductInfo" resultMap="ProductInfoMap" parameterType="String">
+		SELECT	B.PRODUCT_MAIN_NAME, B.PRODUCT_NAME, A.PRODUCT_QTY, A.PRODUCT_PRICE
+		FROM	ORDER_DETAIL A
+		LEFT JOIN    PRODUCT B ON A.PRODUCT_NUM = B.PRODUCT_NUM
+		WHERE	A.ORDER_NUM = #{orderNum}
+	</select>
+	
+	<update id="fixOrder" parameterType="String">
+		UPDATE	ORDER_TB
+		SET		STATUS_NUM = 2
+		WHERE	ORDER_NUM = #{orderNum}
+	</update>
+	<update id="cancelOrder" parameterType="String">
+		UPDATE	ORDER_TB
+		SET		STATUS_NUM = 3
+		WHERE	ORDER_NUM = #{orderNum}
+	</update>
+</mapper>

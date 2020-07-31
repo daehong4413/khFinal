@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="productMapper">
+
+	<resultMap type="Product" id="productResultSet">
+	<id property="productNum" column="PRODUCT_NUM"></id>
+	<result property="categoryNum" column="CATEGORY_NUM"></result>
+	<result property="productMainName" column="PRODUCT_MAIN_NAME"></result>
+	<result property="productMainPath" column="PRODUCT_MAIN_PATH"></result>
+	<result property="productName" column="PRODUCT_NAME"></result>
+	<result property="productStock" column="PRODUCT_STOCK"></result>
+	<result property="productPrice" column="PRODUCT_PRICE"></result>
+	<result property="productInfo" column="PRODUCT_INFO"></result>
+	<result property="productSize" column="PRODUCT_SIZE"></result>
+	<result property="productColor" column="PRODUCT_COLOR"></result>
+	<result property="productShowCnt" column="PRODUCT_SHOW_CNT"></result>
+	<result property="productStatus" column="PRODUCT_STATUS"></result>
+	<result property="cdt" column="CDT"></result>	
+	<result property="mdt" column="MDT"></result>
+	<result property="fCnt" column="F_CNT"></result>
+	<result property="fStat" column="F_STAT"></result>	
+	</resultMap>
+	
+	<!-- 상품등록입력 -->
+	<insert id="insertProduct" parameterType="Product">
+		INSERT INTO PRODUCT
+		VALUES(PRODUCT_NUM.NEXTVAL,#{categoryNum},#{productMainName},#{productMainPath},
+				#{productName},#{productStock},#{productPrice},
+				#{productInfo},#{productSize},#{productColor},
+				#{productShowCnt},DEFAULT,SYSDATE,SYSDATE)
+	</insert>
+	
+	<select id="selectList" parameterType="string" resultMap="productResultSet">
+		SELECT 	A.PRODUCT_NUM, A.CATEGORY_NUM, A.PRODUCT_MAIN_NAME, A.PRODUCT_MAIN_PATH, A.PRODUCT_NAME, A.PRODUCT_STOCK, A.PRODUCT_PRICE, A.PRODUCT_INFO, A.PRODUCT_SIZE, A.PRODUCT_COLOR, A.PRODUCT_SHOW_CNT, A.PRODUCT_STATUS,
+		        SUM(CASE WHEN T1.MEMBER_ID IS NOT NULL THEN 1 ELSE 0 END) AS F_CNT, (CASE WHEN T2.MEMBER_ID IS NULL THEN 'F' ELSE 'T' END) AS F_STAT, A.CDT, A.MDT
+		FROM 	PRODUCT A
+		LEFT JOIN FAVORITE T1 ON A.PRODUCT_NUM = T1.PRODUCT_NUM
+		LEFT JOIN FAVORITE T2 ON A.PRODUCT_NUM = T2.PRODUCT_NUM AND T2.MEMBER_ID = #{memberId}
+		WHERE	A.PRODUCT_STATUS = 'Y'
+		GROUP BY A.PRODUCT_NUM, A.CATEGORY_NUM, A.PRODUCT_MAIN_NAME, A.PRODUCT_MAIN_PATH, A.PRODUCT_NAME, A.PRODUCT_STOCK, A.PRODUCT_PRICE, A.PRODUCT_INFO, 
+		         A.PRODUCT_SIZE, A.PRODUCT_COLOR, A.PRODUCT_SHOW_CNT, A.PRODUCT_STATUS, (CASE WHEN T2.MEMBER_ID IS NULL THEN 'F' ELSE 'T' END), A.CDT, A.MDT
+		ORDER BY A.CDT DESC
+	</select>
+
+	<select id="selectOne" parameterType="_int" resultMap="productResultSet">
+		SELECT * 
+		FROM PRODUCT
+		WHERE PRODUCT_NUM=#{productNum}	
+	</select>
+	
+	<update id="selectDeleteOne" parameterType="_int">
+		UPDATE	PRODUCT
+		SET		PRODUCT_STATUS = 'N'
+		WHERE 	PRODUCT_NUM=#{productNum}
+	</update>
+	
+	<update id="selectUpdate" parameterType="_int">
+		UPDATE 	PRODUCT
+		SET 	PRODUCT_SHOW_CNT = PRODUCT_SHOW_CNT+1
+		WHERE 	PRODUCT_NUM=#{productNum}
+	</update>
+	
+ 	<update id="insertUpdate" parameterType="Product">
+		UPDATE 	PRODUCT
+    	SET 	CATEGORY_NUM=#{categoryNum},
+        		PRODUCT_MAIN_NAME=#{productMainName},
+		        PRODUCT_MAIN_PATH=#{productMainPath},
+		        PRODUCT_NAME=#{productName},
+		        PRODUCT_STOCK=#{productStock},
+		        PRODUCT_PRICE=#{productPrice},
+		        PRODUCT_INFO=#{productInfo},
+		        PRODUCT_SIZE=#{productSize},
+		        PRODUCT_COLOR=#{productColor},
+		        PRODUCT_SHOW_CNT=#{productShowCnt},
+		        PRODUCT_STATUS=DEFAULT,
+		        CDT=SYSDATE,
+		        MDT=SYSDATE
+    	WHERE 	PRODUCT_NUM=#{productNum}
+	</update>
+	<!-- 새로한것 -->
+
+	<select id="searchProduct" resultMap="productResultSet">
+		SELECT 	A.PRODUCT_NUM, A.CATEGORY_NUM, A.PRODUCT_MAIN_NAME, A.PRODUCT_MAIN_PATH, A.PRODUCT_NAME, A.PRODUCT_STOCK, A.PRODUCT_PRICE, A.PRODUCT_INFO, A.PRODUCT_SIZE, A.PRODUCT_COLOR, A.PRODUCT_SHOW_CNT, A.PRODUCT_STATUS,
+		        SUM(CASE WHEN T1.MEMBER_ID IS NOT NULL THEN 1 ELSE 0 END) AS F_CNT, (CASE WHEN T2.MEMBER_ID IS NULL THEN 'F' ELSE 'T' END) AS F_STAT, A.CDT, A.MDT
+		FROM 	PRODUCT A
+		LEFT JOIN FAVORITE T1 ON A.PRODUCT_NUM = T1.PRODUCT_NUM
+		LEFT JOIN FAVORITE T2 ON A.PRODUCT_NUM = T2.PRODUCT_NUM AND T2.MEMBER_ID = #{memberId}
+		WHERE	A.PRODUCT_STATUS = 'Y'
+		AND		PRODUCT_NAME like '%' ||  #{productName} || '%'
+		GROUP BY A.PRODUCT_NUM, A.CATEGORY_NUM, A.PRODUCT_MAIN_NAME, A.PRODUCT_MAIN_PATH, A.PRODUCT_NAME, A.PRODUCT_STOCK, A.PRODUCT_PRICE, A.PRODUCT_INFO, 
+		         A.PRODUCT_SIZE, A.PRODUCT_COLOR, A.PRODUCT_SHOW_CNT, A.PRODUCT_STATUS, (CASE WHEN T2.MEMBER_ID IS NULL THEN 'F' ELSE 'T' END), A.CDT, A.MDT
+		ORDER BY A.PRODUCT_NUM
+	</select> 
+</mapper>

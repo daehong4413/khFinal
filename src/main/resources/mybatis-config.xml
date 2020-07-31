@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd" >
+<configuration>
+	<settings>
+		<setting name="jdbcTypeForNull" value="NULL"></setting>
+		<!--
+			만약 null로 데이터가 전달되었다면 빈칸이 아닌 "NULL"로 인식하다고 설정
+			value 설정 시 NULL은 반드시 대문자로 작성
+			(소문자인 경우 지정되지 않은 실제 null로  인식되어 에러 발생)
+		 -->
+	</settings>
+	<typeAliases>
+		<typeAlias type="org.kh.fin.member.domain.Member" alias="Member" />
+		<typeAlias type="org.kh.fin.mypage.domain.WriteBoard" alias="WriteBoard"/>
+		<typeAlias type="org.kh.fin.mypage.domain.OrderInfo" alias="OrderInfo"/>
+		<typeAlias type="org.kh.fin.mypage.domain.Favorite" alias="Favorite"/>
+		<typeAlias type="org.kh.fin.notice.domain.NoticeBoard" alias="NoticeBoard" />
+		<typeAlias type="org.kh.fin.notice.domain.NoticeCategory" alias="NoticeCategory"/>
+		<typeAlias type="org.kh.fin.notice.domain.Search" alias="nSearch"/>
+		<typeAlias type="org.kh.fin.freeboard.domain.FreeBoard" alias="FreeBoard"/>
+		<typeAlias type="org.kh.fin.freeboard.domain.FreeComment" alias="FreeComment"/>
+		<typeAlias type="org.kh.fin.freeboard.domain.Search" alias="fSearch"/>
+		<typeAlias type="org.kh.fin.product.domain.Product" alias="Product"/>
+		<typeAlias type="org.kh.fin.product.domain.ProductInCart" alias="ProductInCart"/>
+		<typeAlias type="org.kh.fin.order.domain.Order" alias="Order"/>
+		<typeAlias type="org.kh.fin.order.domain.OrderDetail" alias="OrderDetail"/>
+		<typeAlias type="org.kh.fin.product.domain.ProductSearch" alias="ProductSearch"/>
+		<typeAlias type="org.kh.fin.member.domain.Search" alias="mSearch"/>
+		<typeAlias type="org.kh.fin.common.domain.MainItem" alias="MainItem"/>
+		<typeAlias type="org.kh.fin.order.domain.OrderReview" alias="OrderReview"/>
+		<typeAlias type="org.kh.fin.order.domain.OrderValidate" alias="OrderValidate"/>
+		<typeAlias type="org.kh.fin.order.domain.OrderReviewFile" alias="OrderReviewFile"/>
+		<typeAlias type="org.kh.fin.order.domain.OrderProduct" alias="OrderProduct"/>
+		<typeAlias type="org.kh.fin.order.domain.Status" alias="Status"/>
+		
+		<!-- *********************************************** typeAliases 각자 지정한 
+			model클래스 지정하여 작성 *********************************************** -->
+
+	</typeAliases>
+
+	<mappers>
+		<mapper resource="mappers/mypage-mapper.xml"/>
+		<mapper resource="mappers/freeBoard-mapper.xml"/>
+		<mapper resource="mappers/log-mapper.xml" />
+		<mapper resource="mappers/notice-mapper.xml" />
+		<mapper resource="mappers/product-mapper.xml"/>
+		<mapper resource="mappers/order-mapper.xml"/>
+		<mapper resource="mappers/common-mapper.xml"/>
+		<!-- <mapper resource="mappers/orderReview-mapper.xml"/>  -->
+
+		<!-- 쿼리문 저장할곳 설정 -->
+	</mappers>
+</configuration>

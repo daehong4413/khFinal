@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="orderMapper">
+
+	<resultMap type="OrderDetail" id="orderDetailResultSet">
+	<id property="productNum" column="PRODUCT_NUM"></id>
+	<result property="orderNum" column="ORDER_NUM"></result>
+	<result property="orderQty" column="ORDER_QTY"></result>
+	<result property="productPrice" column="PRODCT_PRICE"></result>
+	</resultMap>
+
+	<resultMap type="Order" id="orderResultSet">
+	<id property="orderNum" column="ORDER_NUM"></id>
+	<result property="memberId" column="MEMBER_ID"></result>
+	<result property="orderName" column="ORDER_NAME"></result>
+	<result property="orderPhone" column="ORDER_PHONE"></result>
+	<result property="orderPost" column="ORDER_POST"></result>
+	<result property="orderAddress" column="ORDER_ADDRESS"></result>
+	<result property="orderAddressDetail" column="ORDER_ADDRESS_DETAIL"></result>
+	<result property="statusNum" column="STATUS_NUM"></result>
+	<result property="purchaseType" column="PURCHASE_TYPE"></result>
+	<result property="purchaseNum" column="PURCHASE_NUM"></result>
+	<result property="cdt" column="CDT"></result>
+	<result property="dcRate" column="DC_RATE"></result>
+	</resultMap>
+	
+	<resultMap type="OrderReview" id="orderReviewSet">
+	<id property="productNum" column="PRODUCT_NUM"></id>
+	<id property="orderNum" column="ORDER_NUM"></id>
+	<result property="title" column="TITLE"></result>
+	<result property="member" column="MEMBER_ID"></result>
+	<result property="fileName" column="FILE_NAME"></result>
+	<result property="categoryName" column="CATEGORY_NAME"></result>
+	<result property="productName" column="PRODUCT_NAME"></result>
+	<result property="content" column="CONTENT"></result>
+	<result property="cdt" column="CDT"></result>	
+	<result property="mdt" column="MDT"></result>	
+	</resultMap>
+		
+	<insert id="insertOrderDetail" parameterType="OrderDetail">
+		INSERT INTO ORDER_DETAIL
+		SELECT	PRODUCT_NUM, #{orderNum}, #{orderQty}, PRODUCT_PRICE 
+		FROM	PRODUCT
+		WHERE	PRODUCT_NUM = #{productNum}
+	</insert>
+
+	<insert id="insertOrder" parameterType="Order">
+    	INSERT INTO ORDER_TB
+    	VALUES(#{orderNum},#{memberId},#{orderName},#{orderPhone},#{orderPost},#{orderAddress},
+    	#{orderAddressDetail},#{statusNum},#{purchaseType},#{purchaseNum},SYSDATE, #{dcRate})
+	</insert>
+	
+	
+	<select id="getOrderNum" resultType="String">
+		SELECT	FN_GET_ORDER_NO AS ORDER_NUM
+		FROM	DUAL
+	</select>
+    
+	
+	
+	<select id="selectOrderDetail" parameterType="OrderDetail" resultMap="orderDetailResultSet">
+		SELECT *
+		FROM ORDER_DETAIL
+		WHERE ORDER_NUM='#{orderNum}'
+	</select>
+	<update id="updateProductCnt" parameterType="_int">
+		UPDATE PRODUCT
+		SET PRODUCT_STOCK=PRODUCT_STOCK-#{orderQty}
+		WHERE PRODUCT_NUM=#{productNum}
+	</update>
+	
+	<select id="selectOrderReviewAll" resultMap="orderReviewSet">
+		SELECT  *
+		FROM    ORDER_REVIEW A 
+		LEFT JOIN    PRODUCT B ON A.PRODUCT_NUM = B.PRODUCT_NUM
+		LEFT JOIN    PRODUCT_CATEGORY C ON B.CATEGORY_NUM = C.CATEGORY_NUM
+		LEFT JOIN    ORDER_TB D ON A.ORDER_NUM = D.ORDER_NUM
+        LEFT JOIN    ORDER_REVIEW_FILE E ON E.ORDER_NUM=A.ORDER_NUM AND E.PRODUCT_NUM = A.PRODUCT_NUM
+		ORDER BY a.CDT DESC
+	</select>
+	
+	<select id="selectReviewCount" resultType="_int">
+	
+		SELECT COUNT(*) FROM ORDER_REVIEW
+	</select>
+	
+	<select id="selectPnumCount" resultType="_int">
+	
+		SELECT COUNT(*) FROM ORDER_REVIEW WHERE PRODUCT_NUM=#{productNum}
+	</select>
+ 	
+	<select id="selectProductReview" parameterType="_int" resultMap="orderReviewSet">
+		SELECT  *
+		FROM    ORDER_REVIEW A 
+		LEFT JOIN    PRODUCT B ON A.PRODUCT_NUM = B.PRODUCT_NUM
+		LEFT JOIN    PRODUCT_CATEGORY C ON B.CATEGORY_NUM = C.CATEGORY_NUM
+		LEFT JOIN    ORDER_TB D ON A.ORDER_NUM = D.ORDER_NUM
+        LEFT JOIN    ORDER_REVIEW_FILE E ON A.ORDER_NUM=E.ORDER_NUM AND E.PRODUCT_NUM=A.PRODUCT_NUM
+		WHERE A.PRODUCT_NUM=#{proudctNum}
+		ORDER BY a.CDT DESC
+	</select> 
+	
+	<delete id="deleteReview" parameterType="OrderReview" >
+		DELETE FROM ORDER_REVIEW WHERE PRODUCT_NUM=#{productNum} AND ORDER_NUM=#{orderNum}
+	</delete>
+	
+	<select id="insertValidate" parameterType="OrderValidate" resultMap="orderDetailResultSet">
+		select * from (select ROWNUM,b.* from member a join order_tb b on a.member_id= b.member_id order by b.cdt DESC) where ROWNUM=1 and member_id=#{memberId}
+	</select>
+	
+	<insert id="insertReview" parameterType="OrderReview">
+	
+		INSERT INTO ORDER_REVIEW VALUES(#{productNum},#{orderNum},#{title},#{content},SYSDATE,SYSDATE)
+	</insert>
+	
+	<insert id="insertReviewFile" parameterType="OrderReviewFile">
+		INSERT INTO ORDER_REVIEW_FILE VALUES(SEQ_REVIEW_FILE.NEXTVAL,#{fileName},#{filePath},#{productNum},#{orderNum})
+	</insert>
+	
+	<update id="updateReview">
+		UPDATE ORDER_REVIEW SET CONTENT=#{content}, TITLE=#{title} WHERE ORDER_NUM=#{orderNum} AND PRODUCT_NUM=#{productNum}
+	</update>
+	<update id="updateReviewFile">
+		UPDATE ORDER_REVIEW_FILE SET FILE_NAME=#{fileName}, FILE_PATH=#{filePath} WHERE ORDER_NUM=#{orderNum} AND PRODUCT_NUM=#{productNum}
+	</update>
+	
+</mapper>
+
+
